@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anime Quest · Tarik Anni figure shop</title>
+  <meta name="description" content="Anime figures from Dragon Ball, One Piece, Demon Slayer, Hunter x Hunter and Boruto, sold by Tarik Anni. Shop it like a game.">
+  <meta name="theme-color" content="#10213b">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%2310213b'/%3E%3Crect x='4' y='4' width='8' height='8' fill='%23ff6b1a'/%3E%3Crect x='5' y='5' width='2' height='2' fill='%23fff'/%3E%3Crect x='8' y='8' width='2' height='2' fill='%23e03131'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    // motion: the visitor's own choice wins, otherwise follow the OS setting
+    (function () {
+      var pref = null;
+      try { pref = localStorage.getItem('aq-motion'); } catch (e) {}
+      var rm = pref ? pref === 'off' : matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (rm) document.documentElement.classList.add('rm');
+    })();
+  </script>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#select">Skip to the figures</a>
+
+  <!-- ============ HUD: always on screen, holds the level map that links every stage ============ -->
+  <header class="hud" id="hud">
+    <a class="hud-logo" href="#start" aria-label="Anime Quest, back to the title screen">
+      <span class="hud-logo-mark" aria-hidden="true">TA</span>
+      <span class="hud-logo-word">ANIME<br>QUEST</span>
+    </a>
+
+    <nav class="map" aria-label="Stages">
+      <div class="map-track" aria-hidden="true"><div class="map-fill" id="mapFill"></div></div>
+      <canvas class="map-hero" id="mapHero" width="16" height="16" aria-hidden="true"></canvas>
+      <ol class="map-nodes">
+        <li><a href="#start"  class="map-node" data-stage="0"><span class="map-dot">1</span><span class="map-label">Start</span></a></li>
+        <li><a href="#select" class="map-node" data-stage="1"><span class="map-dot">2</span><span class="map-label">Select</span></a></li>
+        <li><a href="#boss"   class="map-node" data-stage="2"><span class="map-dot">3</span><span class="map-label">Boss</span></a></li>
+        <li><a href="#lore"   class="map-node" data-stage="3"><span class="map-dot">4</span><span class="map-label">Lore</span></a></li>
+        <li><a href="#save"   class="map-node" data-stage="4"><span class="map-dot">5</span><span class="map-label">Save</span></a></li>
+      </ol>
+    </nav>
+
+    <div class="hud-right">
+      <button class="hud-btn" id="motionBtn" type="button" aria-pressed="true" aria-label="Animations">
+        <svg viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges"><path class="mo-on" d="M1 7h3v2H1zM3 4h3v2H3zM3 10h3v2H3zM8 3h4v1h2v2h1v4h-1v2h-2v1H8v-1H7v-1h4v-1h1V6h-1V5H7V4h1z"/><path class="mo-off" d="M6 3h4v1h2v2h1v4h-1v2h-2v1H6v-1H4v-2H3V6h1V4h2zm0 3v4h1V6zm3 0v4h1V6z"/></svg>
+      </button>
+      <button class="hud-btn" id="soundBtn" type="button" aria-pressed="false" aria-label="Sound effects">
+        <svg viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges"><path class="snd-on" d="M2 6h3l4-3v10l-4-3H2z M11 5h1v1h1v4h-1v1h-1z"/><path class="snd-off" d="M2 6h3l4-3v10l-4-3H2z M11 6h1v1h1V6h1v1h-1v1h1v1h-1V8h-1v1h-1V8h1V7h-1z"/></svg>
+      </button>
+      <div class="hud-coins" aria-live="polite"><span class="coin-ico" aria-hidden="true"></span><span id="hudTotal">0</span><small>DHS</small></div>
+      <button class="hud-bag" id="bagBtn" type="button" aria-haspopup="dialog" aria-controls="bag">
+        <svg viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges"><path d="M5 3h6v1h1v2h2v8H2V6h2V4h1zm1 1v2h4V4zm-3 3v6h10V7z"/><path d="M6 9h4v1H6z"/></svg>
+        <span class="sr">Inventory,</span><span class="bag-count" id="bagCount">0</span><span class="sr">items</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="world">
+
+    <!-- ============ STAGE 1 · TITLE SCREEN (3D) ============ -->
+    <section class="stage stage--title" id="start" data-stage="0" aria-labelledby="title-h">
+      <canvas id="scene3d" aria-hidden="true"></canvas>
+      <div class="title-sky" aria-hidden="true"></div>
+
+      <div class="title-copy">
+        <p class="px-tag"><span class="blink" aria-hidden="true">▶</span> STAGE 1 · TITLE SCREEN</p>
+        <h1 id="title-h" class="title-h">
+          <span class="title-line" style="--d:0">ANIME</span>
+          <span class="title-line" style="--d:1">QUEST</span>
+        </h1>
+        <p class="title-sub">Twelve heroes and one boss, from five universes, all real figures you can own. Pick your fighter, fill your inventory, send the order.</p>
+        <div class="title-actions">
+          <a class="btn btn--start" href="#select" id="pressStart"><span>PRESS START</span></a>
+          <div class="mode" role="group" aria-label="Render style">
+            <button type="button" class="mode-btn is-on" data-mode="3d" aria-pressed="true">3D</button>
+            <button type="button" class="mode-btn" data-mode="pixel" aria-pressed="false">PIXEL</button>
+          </div>
+        </div>
+        <p class="orb-hint" id="orbHint"><span class="px">TIP</span> Tap the wish orb. Seven taps, one wish.</p>
+      </div>
+
+      <div class="ticker" aria-hidden="true"><div class="ticker-row" id="ticker"></div></div>
+    </section>
+
+    <!-- ============ STAGE 2 · CHARACTER SELECT (the shop) ============ -->
+    <section class="stage stage--select" id="select" data-stage="1" aria-labelledby="select-h">
+      <header class="stage-head">
+        <span class="stage-num" aria-hidden="true">02</span>
+        <div>
+          <p class="px-tag">STAGE 2</p>
+          <h2 id="select-h">Choose your fighter</h2>
+        </div>
+        <p class="stage-hint">Hover to preview, click for the full profile. Arrow keys move the cursor.</p>
+      </header>
+
+      <div class="select-bar">
+        <div class="tabs" role="tablist" aria-label="Universe" id="tabs"></div>
+        <label class="sort">
+          <span class="px">SORT</span>
+          <select id="sort">
+            <option value="default">Featured</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+            <option value="power">Power level</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="select-layout">
+        <aside class="preview" id="preview" aria-live="polite">
+          <div class="preview-art">
+            <span class="preview-rarity" id="pvRarity">UR</span>
+            <img id="pvImg" src="img/gk.jpg" alt="" width="300" height="300">
+            <span class="preview-uni" id="pvUni">Dragon Ball</span>
+          </div>
+          <div class="preview-body">
+            <p class="preview-line" id="pvLine"></p>
+            <h3 class="preview-name" id="pvName"></h3>
+            <dl class="stats">
+              <div class="stat"><dt>PWR</dt><dd><span class="bar"><span id="pvPow"></span></span><b id="pvPowN"></b></dd></div>
+              <div class="stat"><dt>SPD</dt><dd><span class="bar bar--spd"><span id="pvSpd"></span></span><b id="pvSpdN"></b></dd></div>
+            </dl>
+            <div class="preview-buy">
+              <p class="price"><span class="coin-ico" aria-hidden="true"></span><span id="pvPrice"></span> <small>DHS</small></p>
+              <button class="btn btn--add" type="button" id="pvAdd">Add to inventory</button>
+              <button class="btn btn--ghost" type="button" id="pvOpen">Profile</button>
+            </div>
+          </div>
+        </aside>
+
+        <ul class="roster" id="roster" aria-label="Figures"></ul>
+      </div>
+    </section>
+
+    <!-- ============ STAGE 3 · BOSS BATTLE (featured deal) ============ -->
+    <section class="stage stage--boss" id="boss" data-stage="2" aria-labelledby="boss-h">
+      <div class="boss-lines" aria-hidden="true"></div>
+      <div class="boss-arena">
+        <div class="boss-stage" id="bossStage">
+          <div class="boss-spot" aria-hidden="true"></div>
+          <img class="boss-img" id="bossImg" src="img/gogo.jpg.png" alt="Bardock figure: Saiyan armour, red headband and wristbands" width="828" height="1104" loading="lazy">
+          <div class="boss-hits" id="bossHits" aria-hidden="true"></div>
+        </div>
+
+        <div class="boss-copy">
+          <header class="stage-head stage-head--dark">
+            <span class="stage-num" aria-hidden="true">03</span>
+            <div>
+              <p class="px-tag">STAGE 3 · BOSS</p>
+              <h2 id="boss-h">Bardock appears!</h2>
+            </div>
+          </header>
+          <p class="boss-line" id="bossLine">Banpresto · Dragon Ball Z · exclusive to the Tarik Anni store.</p>
+
+          <div class="hp" aria-label="Boss HP">
+            <div class="hp-top"><span class="px">BOSS HP</span><span class="px" id="hpText">100%</span></div>
+            <div class="hp-bar"><span class="hp-lag" id="hpLag"></span><span class="hp-fill" id="hpFill"></span></div>
+          </div>
+
+          <p class="boss-price">
+            <s>899 DHS</s>
+            <span class="boss-now"><span class="coin-ico" aria-hidden="true"></span>699 <small>DHS</small></span>
+            <span class="boss-tag">-200 DHS</span>
+          </p>
+
+          <div class="boss-actions">
+            <button class="btn btn--strike" type="button" id="strike">Strike · add to bag</button>
+            <button class="btn btn--ghost btn--ghost-dark" type="button" id="bossProfile">Inspect</button>
+          </div>
+          <p class="boss-note">Every strike puts one Bardock in your inventory. Drain his HP and see what happens.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STAGE 4 · LORE (quotes + achievements) ============ -->
+    <section class="stage stage--lore" id="lore" data-stage="3" aria-labelledby="lore-h">
+      <header class="stage-head">
+        <span class="stage-num" aria-hidden="true">04</span>
+        <div>
+          <p class="px-tag">STAGE 4</p>
+          <h2 id="lore-h">Words from the crew</h2>
+        </div>
+      </header>
+
+      <div class="lore-grid">
+        <figure class="dialog" id="dialog">
+          <div class="dialog-face"><img id="dlgImg" src="img/luf.png" alt="" width="160" height="160" loading="lazy"></div>
+          <div class="dialog-box">
+            <figcaption class="dialog-name" id="dlgName">Monkey D. Luffy</figcaption>
+            <blockquote class="dialog-text"><p id="dlgText" aria-live="polite"></p></blockquote>
+            <div class="dialog-foot">
+              <span class="dialog-pager" id="dlgPager" aria-hidden="true"></span>
+              <button class="dialog-next" type="button" id="dlgNext">Next <span aria-hidden="true">▼</span></button>
+            </div>
+          </div>
+        </figure>
+
+        <ul class="achievements" aria-label="Shop achievements">
+          <li class="ach" style="--i:0"><span class="ach-ico" aria-hidden="true">12+1</span><div><b>Roster unlocked</b><span>Twelve heroes and one boss on the shelf</span></div></li>
+          <li class="ach" style="--i:1"><span class="ach-ico" aria-hidden="true">x5</span><div><b>Multiverse</b><span>Dragon Ball, One Piece, Demon Slayer, HxH, Boruto</span></div></li>
+          <li class="ach" style="--i:2"><span class="ach-ico" aria-hidden="true">DHS</span><div><b>Local coins</b><span>Every price in Moroccan dirhams</span></div></li>
+          <li class="ach" style="--i:3"><span class="ach-ico" aria-hidden="true">DM</span><div><b>Direct line</b><span>Orders go straight to Tarik on Instagram</span></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ STAGE 5 · SAVE POINT (about + contact) ============ -->
+    <section class="stage stage--save" id="save" data-stage="4" aria-labelledby="save-h">
+      <header class="stage-head">
+        <span class="stage-num" aria-hidden="true">05</span>
+        <div>
+          <p class="px-tag">STAGE 5 · SAVE POINT</p>
+          <h2 id="save-h">Meet the shopkeeper</h2>
+        </div>
+      </header>
+
+      <div class="save-grid">
+        <article class="keeper">
+          <canvas class="keeper-face" id="keeperFace" width="16" height="16" aria-hidden="true"></canvas>
+          <div>
+            <p class="px-tag px-tag--ink">NPC · TARIK ANNI · MOROCCO</p>
+            <p class="keeper-text">Hi! I'm Tarik. I study economics, management, networks and IT development, and this shop started as my very first website. I built it with love, it's just the beginning.</p>
+            <ul class="socials">
+              <li><a href="https://www.instagram.com/32ni.off/" target="_blank" rel="noopener">Instagram</a></li>
+              <li><a href="https://web.facebook.com/tarik.anni/" target="_blank" rel="noopener">Facebook</a></li>
+              <li><a href="https://twitter.com/32ni_off" target="_blank" rel="noopener">Twitter</a></li>
+            </ul>
+          </div>
+        </article>
+
+        <form class="save-form" id="saveForm" novalidate>
+          <p class="save-slot"><span class="px">SLOT 01</span> Leave a message</p>
+          <label class="field"><span>Name</span><input name="name" autocomplete="name" required maxlength="60" placeholder="Your player name"></label>
+          <label class="field"><span>Email or phone</span><input name="reach" autocomplete="email" required maxlength="80" placeholder="So Tarik can answer you"></label>
+          <label class="field"><span>Message</span><textarea name="msg" rows="3" required maxlength="600" placeholder="Looking for a figure that isn't here? Ask."></textarea></label>
+          <button class="btn btn--save" type="submit">Save &amp; send</button>
+          <p class="save-help">Your message is copied, then Instagram opens so you can paste it in a DM to Tarik.</p>
+          <div class="save-done" id="saveDone" hidden>
+            <svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg>
+            <p><b>GAME SAVED.</b> Message copied. Paste it in the Instagram DM that just opened.</p>
+          </div>
+        </form>
+      </div>
+
+      <footer class="credits">
+        <p class="px">© 2026 TARIK ANNI · ANIME QUEST</p>
+        <p>Characters and figures belong to their creators and manufacturers.</p>
+        <a class="px credits-top" href="#start">CONTINUE? ▲</a>
+      </footer>
+    </section>
+  </main>
+
+  <!-- ============ PROFILE (product detail) ============ -->
+  <dialog class="profile" id="profile" aria-labelledby="pfName">
+    <button class="x" type="button" data-close aria-label="Close profile">X</button>
+    <div class="profile-art">
+      <span class="preview-rarity" id="pfRarity"></span>
+      <img id="pfImg" src="" alt="" width="300" height="300">
+      <div class="thumbs" id="pfThumbs" role="group" aria-label="Photos"></div>
+    </div>
+    <div class="profile-body">
+      <p class="px-tag px-tag--ink" id="pfUni"></p>
+      <h3 id="pfName"></h3>
+      <p class="profile-line" id="pfLine"></p>
+      <dl class="stats">
+        <div class="stat"><dt>PWR</dt><dd><span class="bar"><span id="pfPow"></span></span><b id="pfPowN"></b></dd></div>
+        <div class="stat"><dt>SPD</dt><dd><span class="bar bar--spd"><span id="pfSpd"></span></span><b id="pfSpdN"></b></dd></div>
+      </dl>
+      <p class="profile-blurb" id="pfBlurb"></p>
+      <div class="profile-buy">
+        <p class="price"><span class="coin-ico" aria-hidden="true"></span><span id="pfPrice"></span> <small>DHS</small></p>
+        <div class="qty" role="group" aria-label="Quantity">
+          <button type="button" id="qtyMinus" aria-label="One less">-</button>
+          <output id="qty" aria-live="polite">1</output>
+          <button type="button" id="qtyPlus" aria-label="One more">+</button>
+        </div>
+        <button class="btn btn--add" type="button" id="pfAdd">Add to inventory</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ============ INVENTORY (cart) ============ -->
+  <dialog class="bag" id="bag" aria-labelledby="bagTitle">
+    <div class="bag-head">
+      <h3 id="bagTitle">Inventory</h3>
+      <button class="x" type="button" data-close aria-label="Close inventory">X</button>
+    </div>
+    <ul class="bag-list" id="bagList"></ul>
+    <div class="bag-empty" id="bagEmpty">
+      <p class="px">INVENTORY EMPTY</p>
+      <p>No fighters yet. Head to Stage 2 and pick one.</p>
+      <a class="btn btn--ghost" href="#select" data-close>Go to Character Select</a>
+    </div>
+    <div class="bag-foot" id="bagFoot">
+      <p class="bag-total"><span class="px">TOTAL</span><span><span class="coin-ico" aria-hidden="true"></span><b id="bagTotal">0</b> DHS</span></p>
+      <button class="btn btn--start btn--block" type="button" id="checkout"><span>Complete quest</span></button>
+    </div>
+  </dialog>
+
+  <!-- ============ QUEST COMPLETE (order summary) ============ -->
+  <dialog class="complete" id="complete" aria-labelledby="doneTitle">
+    <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+    <svg class="check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg>
+    <p class="px-tag px-tag--ink">QUEST COMPLETE</p>
+    <h3 id="doneTitle">Your party is ready</h3>
+    <ul class="done-list" id="doneList"></ul>
+    <p class="done-total"><span class="px">TOTAL</span> <b id="doneTotal"></b> DHS</p>
+    <p class="done-help">Last step: send this order to Tarik. We copy it for you and open his Instagram DM; paste it there and he'll confirm delivery and payment.</p>
+    <div class="done-actions">
+      <button class="btn btn--save" type="button" id="sendOrder">Copy order &amp; open DM</button>
+      <button class="btn btn--ghost" type="button" data-close>Keep playing</button>
+    </div>
+    <p class="done-copied" id="doneCopied" hidden>Order copied. If Instagram didn't open, message <a href="https://www.instagram.com/32ni.off/" target="_blank" rel="noopener">@32ni.off</a>.</p>
+  </dialog>
+
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  <div class="wipe" id="wipe" aria-hidden="true"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
